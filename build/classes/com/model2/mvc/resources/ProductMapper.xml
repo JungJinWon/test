@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+		
+<!--	
+	UserMapper.xml :: SQL 를 갖는 MetaData 
+ -->		
+ 					
+<mapper namespace="ProductMapper">
+
+	<resultMap id="productSelectMap" type="product">
+		<result property="prodNo" column="prod_no" jdbcType="NUMERIC"/>
+		<result property="prodName" column="prod_name" jdbcType="VARCHAR"/>
+		<result property="prodDetail" column="prod_detail" jdbcType="VARCHAR"/>
+		<result property="manuDate" column="manufacture_day" jdbcType="VARCHAR"/>
+		<result property="price" column="price" jdbcType="NUMERIC"/>
+		<result property="fileName" column="image_file" jdbcType="VARCHAR"/>
+		<result property="regDate" column="reg_date" jdbcType="DATE"/>
+	</resultMap>
+	
+	<insert id="insertProduct" parameterType="product">
+		INSERT
+		INTO PRODUCT
+		VALUES(	seq_product_prod_no.nextval,
+				#{prodName},
+				#{prodDetail},
+				#{manuDate},
+				#{price},
+				#{fileName},
+				sysdate	)
+	</insert>
+	
+	<select id="findProduct" parameterType="int" resultType="product">
+		SELECT 
+		*
+		FROM PRODUCT p, TRANSACTION t
+		<where>
+			<if test="prod_no != null">
+				p.prod_no = t.prod_no(+)
+			</if>
+				AND p.prod_no = #{prodNo}
+		</where>
+	</select>
+	
+	<sql id="orderby-prodNo-desc">
+	  	ORDER BY p.prod_no
+	</sql>
+	
+	<sql id="list">
+		SELECT 
+		p.*,NVL(tran_status_code, 0) tsc 
+		FROM PRODUCT p, TRANSACTION t
+		<if test="searchCondition != null">
+		<where>
+			p.prod_no = t.prod_no(+)
+			<choose>
+				<when test="searchCondition == 0">
+					AND p.prod_no LIKE '%${searchKeyword}%'
+				</when>
+				<when test="searchCondition == 1">
+					AND p.prod_name LIKE '%${searchKeyword}%'
+				</when>
+				<otherwise>
+					AND p.price LIKE '%${searchKeyword}%'
+				</otherwise>
+			</choose>
+		</where>
+		</if>
+		<include refid="orderby-prodNo-desc"/>
+	</sql>
+	
+	<select id="getProductList" parameterType="com.model2.mvc.common.Search"
+		resultMap="productSelectMap">
+		SELECT * 
+			FROM (		SELECT inner_table. * ,  ROWNUM AS row_seq
+				FROM (<include refid="list"/>) inner_table
+				WHERE ROWNUM &lt;= (#{page}*#{pageSize})		)
+			WHERE row_seq BETWEEN	(#{page}-1)*#{pageSize}+1	AND	(#{page}*#{pageSize}) 
+	</select>
+	
+	<update id="updateProduct" parameterType="product">
+		UPDATE product
+		<set>
+			<if test="prodNo != null">prod_no = #{prodNo}</if>
+			<if test="prodName != null">prod_name = #{prodName}</if>
+			<if test="prodDetail != null">prod_detail = #{prodDetail}</if>
+			<if test="manuDate != null">manufacture_day = #{manuDate}</if>
+			<if test="price != null">price = #{price}</if>
+			<if test="fileName != null">image_file = #{fileName}</if>
+		</set>
+		WHERE prod_no = #{prodNo}
+	</update>
+	
+	<select id="getTotal" parameterType="com.model2.mvc.common.Search" resultType="int">
+		SELECT COUNT (*)
+		FROM (<include refid="list"/>)	countTable	
+	</select>
+	
+</mapper>

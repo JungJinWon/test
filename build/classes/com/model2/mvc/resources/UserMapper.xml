@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+		
+<!--	
+	UserMapper.xml :: SQL 를 갖는 MetaData 
+ -->		
+ 					
+<mapper namespace="UserMapper">
+
+	<resultMap id="userSelectMap" type="user">
+	  	<result property="userId" column="user_id" jdbcType="VARCHAR"/>
+	  	<result property="userName" column="user_name" jdbcType="VARCHAR"/>
+	  	<result property="password" column="password" jdbcType="VARCHAR"/>
+	  	<result property="ssn" column="ssn" jdbcType="VARCHAR"/>
+	  	<result property="phone" column="cell_phone" jdbcType="VARCHAR"/>
+	  	<result property="addr" column="addr" jdbcType="VARCHAR"/>
+	  	<result property="email" column="email" jdbcType="VARCHAR"/>
+	  	<result property="regDate" column="reg_date" jdbcType="DATE"/>
+	</resultMap>
+	
+	<insert id="insertUser" parameterType="user">
+	 	INSERT
+	  	INTO users(user_id, user_name, password, ssn, cell_phone, addr, email, reg_date)
+	  	VALUES(  #{userId},
+				#{userName},
+				#{password},
+				<if test="ssn == null">
+				ssn IS NULL
+				</if>
+				#{ssn},
+				#{phone},
+				#{addr},
+				#{email},
+				sysdate )
+	</insert>
+	
+	<select id="findUser" parameterType="string" resultType="user">
+	 	SELECT
+	 	user_id AS userId, 
+	 	user_name AS userName, 
+	 	password, 
+	 	role, 
+	 	ssn, 
+	 	cell_phone AS phone,
+	 	addr, 
+	 	email, 
+	 	reg_date AS regDate
+	 	FROM users
+	 	WHERE user_id = #{value}
+	</select>
+	
+	<sql id="orderby-userId-desc">
+	  	ORDER BY user_id DESC
+	</sql>
+	
+	<sql id="list">
+		SELECT user_id, user_name, email
+		FROM users
+	<if test="searchCondition != null">
+	<where>
+		<if test="searchCondition == 0">
+			user_id like '%${searchKeyword}%'
+		</if>
+		<if test="searchCondition == 1">
+			user_name like '%${searchKeyword}%'
+		</if>
+	</where>
+	</if>
+ 	<include refid="orderby-userId-desc"/>
+	</sql>
+	
+	<select id="getUserList" parameterType="com.model2.mvc.common.Search"
+		resultMap="userSelectMap">
+		SELECT * 
+			FROM (		SELECT inner_table. * ,  ROWNUM AS row_seq
+				FROM (<include refid="list"/>) inner_table
+				WHERE ROWNUM &lt;= (#{page}*#{pageSize})		)
+			WHERE row_seq BETWEEN	(#{page}-1)*#{pageSize}+1	AND	(#{page}*#{pageSize}) 
+	</select>
+	
+	<update id="updateUser" parameterType="user">
+		UPDATE users
+	 	<set>
+	 		<if test="userName != null">user_name = #{userName},</if>
+	 		<if test="password != null">password = #{password},</if>
+	 		<if test="phone != null">cell_phone = #{phone},</if>
+	 		<if test="addr != null">addr = #{addr},</if>
+	 		<if test="email != null">email = #{email}</if>
+	 	</set>
+	 	WHERE user_id = #{userId}
+	</update>
+	
+	<select id="getTotal" parameterType="com.model2.mvc.common.Search" resultType="int">
+		SELECT COUNT (*)
+		FROM (<include refid="list"/>)	countTable	
+	</select>
+	
+</mapper>

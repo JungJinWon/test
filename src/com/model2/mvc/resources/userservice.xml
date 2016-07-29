@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans 
+								http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- ㅇ MyBatis 사용 DAO 생성 및 SqlSession injection -->
+	<bean id="userDAOImpl" class="com.model2.mvc.service.user.impl.UserDAOImpl">
+		<property name="sqlSession" ref="sqlSessionTemplate"/>
+	</bean>
+	
+	<!-- ㅇ userService 생성 및 MyBatis 사용 DAO injection -->
+	<bean id="userServiceImpl" class="com.model2.mvc.service.user.impl.UserServiceImpl">
+		<property name="userDAO" ref="userDAOImpl"/>
+	</bean>
+</beans>

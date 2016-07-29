@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE configuration
+ 		 PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+ 		"http://mybatis.org/dtd/mybatis-3-config.dtd">
+  						
+<!-- mybatis-config.xml :: MyBatis Framework MetaData -->	  						
+
+<configuration>
+  <!-- 1. properties 파일 관리
+  		- 애플리케이션 배포시 공통부분, 각 환경별 다른 값들은 properties 파일에
+  		  독립적으로 관리할 수 있다.
+  		- DBMS 접속정보를 갖는 properties 화일 참조
+  		- properties 파일에 저장된 name = value는 ${name} 표현으로 접근가능 -->
+  <properties resource="com/model2/mvc/resources/jdbc.properties"/>
+  
+  <!-- 2. 기타 설정정보 :: [MyBatis_Home]/mybatis-3.2.1.pdf 참조 -->
+  <settings>
+  	<!-- select 결과 column이 null인 경우 setter Method 호출 유무 :: 추후 학습 -->
+  	<setting name="callSettersOnNulls" value="false"/>
+  </settings>
+  
+  <!-- 3. FQCN(Full Qualified Class Name) Alias(별칭관리) -->
+  <typeAliases>
+  	<typeAlias alias="user" type="com.model2.mvc.service.domain.User"/>
+  	<typeAlias alias="product" type="com.model2.mvc.service.domain.Product"/>
+  </typeAliases>
+
+  <!-- :: MyBatis는 자주 사용 / 공통된 DataType은 내장된 Alias를 정의해두고 있다. 
+  			- string : java.lang.String
+  			- byte : java.lang.Byte :: wrapper class(7EA Chracter 제외)
+  			- Primitive Data type : _byte 형태 (7EA : char 제외)
+  			- object : java.lang.Object			- map : java.util.Map
+  			- hashMap : java.util.HashMap		- list : java.util.List
+  			- arraylist : java.util.Arraylist 등...
+  			:: [MyBatis Home]/ mybatis-3.2.1.pdf 참조 -->
+  			
+  <environments default="development">
+  
+    <environment id="development">
+      <!-- Transaction Definition -->
+      <transactionManager type="JDBC"/>
+ 	   <!-- javax.sql.DataSource Definition -->      
+      <dataSource type="POOLED">
+        <property name="driver"  value="${driver}"/>
+        <property name="url" value="${url}"/>
+        <property name="username"  value="${username}"/>
+        <property name="password" value="${password}"/>
+      </dataSource>
+    </environment>
+    
+  </environments>
+
+  <!-- SQL Definition :: file include -->
+  <mappers>
+  	<mapper resource="com/model2/mvc/resources/UserMapper.xml"/>
+  	<mapper resource="com/model2/mvc/resources/ProductMapper.xml"/>
+  </mappers>
+
+</configuration>
